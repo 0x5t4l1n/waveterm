@@ -101,6 +101,7 @@ func processChatStream(
 ) (*uctypes.WaveStopReason, *StoredChatMessage, error) {
 	decoder := eventsource.NewDecoder(body)
 	var textBuilder strings.Builder
+	var reasoningBuilder strings.Builder
 	msgID := uuid.New().String()
 	textID := uuid.New().String()
 	var finishReason string
@@ -159,6 +160,9 @@ func processChatStream(
 		}
 
 		choice := chunk.Choices[0]
+		if choice.Delta.ReasoningContent != "" {
+			reasoningBuilder.WriteString(choice.Delta.ReasoningContent)
+		}
 		if choice.Delta.Content != "" {
 			if !textStarted {
 				_ = sseHandler.AiMsgTextStart(textID)
@@ -239,7 +243,8 @@ func processChatStream(
 	assistantMsg := &StoredChatMessage{
 		MessageId: msgID,
 		Message: ChatRequestMessage{
-			Role: "assistant",
+			Role:             "assistant",
+			ReasoningContent: reasoningBuilder.String(),
 		},
 	}
 
