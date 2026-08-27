@@ -129,7 +129,7 @@ func processChatStream(
 				break
 			}
 			if sseHandler.Err() != nil {
-				partialMsg := extractPartialTextMessage(msgID, textBuilder.String())
+				partialMsg := extractPartialTextMessage(msgID, textBuilder.String(), reasoningBuilder.String())
 				return &uctypes.WaveStopReason{
 					Kind:      uctypes.StopKindCanceled,
 					ErrorType: "client_disconnect",
@@ -265,16 +265,17 @@ func processChatStream(
 	return stopReason, assistantMsg, nil
 }
 
-func extractPartialTextMessage(msgID string, text string) *StoredChatMessage {
-	if text == "" {
+func extractPartialTextMessage(msgID string, text string, reasoning string) *StoredChatMessage {
+	if text == "" && reasoning == "" {
 		return nil
 	}
 
 	return &StoredChatMessage{
 		MessageId: msgID,
 		Message: ChatRequestMessage{
-			Role:    "assistant",
-			Content: text,
+			Role:             "assistant",
+			Content:          text,
+			ReasoningContent: reasoning,
 		},
 	}
 }
